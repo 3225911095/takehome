@@ -5,8 +5,17 @@
 #include <iomanip>
 #include <iostream>
 #include <cctype>
+#include "json.hpp"
 
 using namespace std;
+using json = nlohmann::json;
+
+static bool EndsWithIgnoreCase(const std::string& s, const std::string& suffix)
+{
+    if (s.size() < suffix.size()) return false;
+    std::string a = s.substr(s.size() - suffix.size());
+    return ToUpperCopy(a) == ToUpperCopy(suffix);
+}
 
 vector<string> ReadAndPreprocessFile(const string& path, string& err)
 {
@@ -138,6 +147,11 @@ bool ParseItem(const string& line, Item& out)
 
 bool ParseProblemFromFile(const string& path, Problem& out, string& err)
 {
+    if (EndsWithIgnoreCase(path, ".json"))
+    {
+        return ParseProblemFromJsonFile(path, out, err);
+    }
+
     vector<string> lines = ReadAndPreprocessFile(path, err);
     if (lines.empty() && !err.empty())
     {
@@ -294,6 +308,158 @@ bool ParseProblemFromFile(const string& path, Problem& out, string& err)
     }
     out = temp;
     return true;
+}
+
+bool ParseProblemFromJsonFile(const std::string& path, Problem& out, std::string& err)
+{
+    std::ifstream file(path.c_str());
+    if (!file.is_open())
+    {
+        err = "无法打开文件: " + path;
+        return false;
+    }
+
+    json j;
+    try
+    {
+        file >> j;
+    }
+    catch (const std::exception& e)
+    {
+        err = std::string("JSON 解析失败: ") + e.what();
+        return false;
+    }
+
+    Problem temp;
+
+    // 1. boundary
+    if (!j.contains("boundary") || !j["boundary"].is_array())
+    {
+        err = "缺少 boundary 数组";
+        return false;
+    }
+
+    for (const auto& p : j["boundary"])
+    {
+        if (!p.is_array() || p.size() != 2)
+        {
+            err = "boundary 点格式错误，应为 [x,y]";
+            return false;
+        }
+
+        Point pt;
+        pt.x = p[0].get<double>();
+        pt.y = p[1].get<double>();
+        temp.contour.push_back(pt);
+    }
+
+    if (temp.contour.size() < 3)
+    {
+        err = "boundary 点数不足";
+        return false;
+    }
+
+    // 若首尾重复闭合，删掉最后一个重复点（你的样例里就是这样）
+    if (temp.contour.size() >= 2)
+    {
+        const Point& first = temp.contour.front();
+        const Point& last = temp.contour.back();
+        if (NearlyEqual(first.x, last.x) && NearlyEqual(first.y, last.y))
+        {
+            temp.contour.pop_back();
+        }
+    }
+
+    // 2. door
+    if (!j.contains("door") || !j["door"].is_array() || j["door"].size() != 2)
+    {
+        err = "door 格式错误，应为 [[x1,y1],[x2,y2]]";
+        return false;
+    }
+
+    for (int i = 0; i < 2; ++i)
+    {
+        if (!j["door"][i].is_array() || j["door"][i].size() != 2)
+        {
+            err = "door 点格式错误";
+            return false;
+        }
+    }
+
+    temp.door.seg.a.x = j["door"][0][0].get<double>();
+    temp.door.seg.a.y = j["door"][0][1].get<double>();
+    temp.door.seg.b.x = j["door"][1][0].get<double>();
+    temp.door.seg.b.y = j["door"][1][1].get<double>();
+
+    // 3. isOpenInward
+    if (!j.contains("isOpenInward") || !j["isOpenInward"].is_boolean())
+    {
+        err = "缺少 isOpenInward 布尔字段";
+        return false;
+    }
+
+    temp.door.type = j["isOpenInward"].get<bool>() ? DoorType::INWARD : DoorType::OUTWARD;
+
+    // 4. algoToPlace
+    if (!j.contains("algoToPlace") || !j["algoToPlace"].is_object())
+    {
+        err = "缺少 algoToPlace 对象";
+        return false;
+    }
+
+    for (auto it = j["algoToPlace"].begin(); it != j["algoToPlace"].end(); ++it)
+    {
+        const std::string name = it.key();
+        const json& sizeArr = it.value();
+
+        if (!sizeArr.is_array() || sizeArr.size() != 2)
+        {
+            err = "algoToPlace 中物品尺寸格式错误，应为 [length,width]";
+            return false;
+        }
+
+        Item item;
+        item.name = name;
+        item.type = ParseItemTypeFromName(name);
+        item.length = sizeArr[0].get<double>();
+        item.width = sizeArr[1].get<double>();
+
+        temp.items.push_back(item);
+    }
+
+    if (temp.items.empty())
+    {
+        err = "algoToPlace 为空";
+        return false;
+    }
+
+    out = temp;
+    return true;
+}
+
+ItemType ParseItemTypeFromName(const std::string& itemName)
+{
+    std::string s = ToUpperCopy(itemName);
+
+    if (s == "FRIDGE")
+    {
+        return ItemType::FRIDGE;
+    }
+    if (s == "ICEMAKER" || s == "ICE_MAKER")
+    {
+        return ItemType::ICEMAKER;
+    }
+    if (s.find("OVERSHELF") == 0 || s.find("OVER_SHELF") == 0)
+    {
+        return ItemType::OVERSHELF;
+    }
+    if (s.find("SHELF") == 0)
+    {
+        return ItemType::SHELF;
+    }
+
+    // 默认兜底
+    return ItemType::SHELF;
 }
 
 void PrintSolution(const Problem& problem, const Solution& solution, ostream& os)

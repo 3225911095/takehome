@@ -258,14 +258,27 @@ bool IsPointInPolygon(const Point& p, const vector<Point>& poly)
 	{
 		return false;
 	}
+	int n = static_cast<int>(poly.size());
+	for (int i = 0; i < n; i++)
+	{
+		Segment edge;
+		edge.a = poly[i];
+		edge.b = poly[(i + 1) % n];
+
+		if (IsPointOnSegment(p, edge))
+		{
+			return true;
+		}
+	}
 	int count = 0;
-	int n = poly.size();
 	for (int i = 0; i < n; i++)
 	{
 		Point p1 = poly[i];
-		Point p2 = poly[(i + 1) % n]; 
+		Point p2 = poly[(i + 1) % n];
+
 		bool p1Above = (p1.y > p.y + EPS);
 		bool p2Above = (p2.y > p.y + EPS);
+
 		if (p1Above != p2Above)
 		{
 			double xIntersect = (p2.x - p1.x) * (p.y - p1.y) / (p2.y - p1.y) + p1.x;

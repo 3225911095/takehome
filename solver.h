@@ -29,6 +29,27 @@ private:
     bool IsPlacementValid(const Placement& p, const std::vector<Placement>& placed) const;
 
     void AddCandidateUnique(std::vector<Solver::Candidate>& out, const Solver::Candidate& c) const;
+
+    //自适应步长
+    double ComputeAdaptiveStep(const Item& item, int angle, bool wall_mode) const;
+
+    // 在线段范围内生成采样点
+    void AppendLineSamples(
+        double low,
+        double high,
+        double half_span,
+        double step,
+        std::vector<double>& out
+    ) const;
+
+    // 判断某条轮廓边的“室内法向”
+    bool InferInteriorNormal(
+        const Segment& edge,
+        double* nx,
+        double* ny
+    ) const;
+
+
     std::vector<Solver::Candidate> GenerateWallCandidates(int item_index) const;
     std::vector<Solver::Candidate> GenerateInteriorCandidates(int item_index, double step) const;
 
@@ -52,5 +73,5 @@ private:
     const Problem& problem_;
     Rect room_bbox_;
     Rect door_block_;
-    double default_grid_step_ = 1.0;
+    double default_grid_step_ = 100.0;
 };

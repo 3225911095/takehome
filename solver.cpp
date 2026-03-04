@@ -10,11 +10,6 @@ Solver::Solver(const Problem& problem)
 {
     room_bbox_ = ComputeBoundingBox(problem_.contour);
     door_block_ = BuildDoorBlock();
-
-    cout << "[调试] 房间边界框: (" << room_bbox_.x1 << ", " << room_bbox_.y1
-         << ") -> (" << room_bbox_.x2 << ", " << room_bbox_.y2 << ")" << endl;
-    cout << "[调试] 门区域: (" << door_block_.x1 << ", " << door_block_.y1
-         << ") -> (" << door_block_.x2 << ", " << door_block_.y2 << ")" << endl;
 }
 
 Solution Solver::Solve() const
@@ -47,7 +42,7 @@ Solution Solver::Solve() const
         {
             all_candidates[i] = GenerateWallCandidates(i);
 
-            vector<Candidate> extra = GenerateInteriorCandidates(i, default_grid_step_);
+            vector<Candidate> extra = GenerateInteriorCandidates(i, 0.0);
 
             for (int j = 0; j < static_cast<int>(extra.size()); j++)
             {
@@ -156,6 +151,7 @@ Rect Solver::BuildDoorBlock() const
         }
         return NormalizeRect(res);
     }
+    return Rect{};
 }
 
 Rect Solver::BuildFridgeForbiddenZone(const Rect& body, int angle, const Item& item) const
@@ -166,14 +162,14 @@ Rect Solver::BuildFridgeForbiddenZone(const Rect& body, int angle, const Item& i
     {
         res.x1 = body.x1;
         res.x2 = body.x2;
-        res.y1 = body.y2;
+        res.y1 = body.y1;
         res.y2 = body.y2 + forbidden;
     }
     else if (angle == 90)
     {
         res.x1 = body.x1;
         res.x2 = body.x2 + forbidden;
-        res.y1 = body.y2;
+        res.y1 = body.y1;
         res.y2 = body.y2;
     }
     return NormalizeRect(res);
@@ -203,17 +199,13 @@ bool Solver::BasicCandidateValid(const Solver::Candidate& c) const
 {
     if (!IsRectInsidePolygon(c.body, problem_.contour))
     {
-        cout << "  [调试] 候选 (" << c.center.x << ", " << c.center.y << ") 不在轮廓内" << endl;
         return false;
     }
     // 家具不能与门区域重叠（包括边接触）
     if (!IsZeroRect(door_block_))
     {
-        cout << "  [调试] 检查门区域: body=(" << c.body.x1 << "," << c.body.y1 << ")->(" << c.body.x2 << "," << c.body.y2 << ") "
-             << "door=(" << door_block_.x1 << "," << door_block_.y1 << ")->(" << door_block_.x2 << "," << door_block_.y2 << ")" << endl;
         if (IsRectOverlap(c.body, door_block_, false))
         {
-            cout << "  [调试] 候选 (" << c.center.x << ", " << c.center.y << ") 与门区域重叠" << endl;
             return false;
         }
     }
@@ -271,96 +263,225 @@ void Solver::AddCandidateUnique(std::vector<Solver::Candidate>& out, const Solve
     out.push_back(c);
 }
 
+double Solver::ComputeAdaptiveStep(const Item& item, int angle, bool wall_mode) const
+{
+    double w = RotatedSpanX(item, angle);
+    double h = RotatedSpanY(item, angle);
+
+    double base = std::min(w, h);
+    if (base <= EPS)
+    {
+        return default_grid_step_;
+    }
+    double step = 0.0;
+    if (wall_mode)
+    {
+        // 贴墙采样
+        step = base * 0.5;
+    }
+    else
+    {
+        // 内部采样
+        step = base * 0.35;
+    }
+    // 上下限
+    if (step < 50.0)
+    {
+        step = 50.0;
+    }
+    if (step > 250.0)
+    {
+        step = 250.0;
+    }
+    return step;
+}
+
+void Solver::AppendLineSamples(double low, double high, double half_span, double step, std::vector<double>& out) const
+{
+    if (step <= EPS)
+    {
+        step = default_grid_step_;
+    }
+    double start = low + half_span;
+    double end = high - half_span;
+    if (start > end + EPS)
+    {
+        return;
+    }
+    out.push_back(start);
+    for (double v = start + step; v < end - EPS; v += step)
+    {
+        out.push_back(v);
+    }
+    if (!NearlyEqual(start, end))
+    {
+        out.push_back(end);
+    }
+}
+
+bool Solver::InferInteriorNormal(const Segment& edge, double* nx, double* ny) const
+{
+    if (nx == nullptr || ny == nullptr)
+    {
+        return false;
+    }
+
+    *nx = 0.0;
+    *ny = 0.0;
+
+    Point mid;
+    mid.x = (edge.a.x + edge.b.x) / 2.0;
+    mid.y = (edge.a.y + edge.b.y) / 2.0;
+
+    double probe = std::min(RectWidth(room_bbox_), RectHeight(room_bbox_)) * 1e-4;
+    if (probe < 1e-3)
+    {
+        probe = 1e-3;
+    }
+
+    Point roomcenter = {};
+    roomcenter.x = (room_bbox_.x1 + room_bbox_.x2) / 2.0;
+    roomcenter.y = (room_bbox_.y1 + room_bbox_.y2) / 2.0;
+
+    // 水平边
+    if (NearlyEqual(edge.a.y, edge.b.y))
+    {
+        Point above;
+        above.x = mid.x;
+        above.y = mid.y + probe;
+        Point below;
+        below.x = mid.x; 
+        below.y = mid.y - probe;
+        bool inAbove = IsPointInPolygon(above, problem_.contour);
+        bool inBelow = IsPointInPolygon(below, problem_.contour);
+
+        if (inAbove != inBelow)
+        {
+            *nx = 0.0;
+            *ny = inAbove ? 1.0 : -1.0;
+            return true;
+        }
+
+        // 兜底：用房间中心判断
+        *nx = 0.0;
+        *ny = (roomcenter.y >= mid.y) ? 1.0 : -1.0;
+        return true;
+    }
+
+    // 垂直边
+    if (NearlyEqual(edge.a.x, edge.b.x))
+    {
+        Point right;
+        right.x = mid.x + probe;
+        right.y = mid.y;
+        Point left;
+        left.x = mid.x - probe;
+        left.y = mid.y;
+
+        bool inRight = IsPointInPolygon(right, problem_.contour);
+        bool inLeft = IsPointInPolygon(left, problem_.contour);
+
+        if (inRight != inLeft)
+        {
+            *nx = inRight ? 1.0 : -1.0;
+            *ny = 0.0;
+            return true;
+        }
+
+        // 兜底：用房间中心判断
+        *nx = (roomcenter.x >= mid.x) ? 1.0 : -1.0;
+        *ny = 0.0;
+        return true;
+    }
+    return false;
+}
+
 std::vector<Solver::Candidate> Solver::GenerateWallCandidates(int item_index) const
 {
     std::vector<Solver::Candidate> res;
     const Item& item = problem_.items[item_index];
 
+    int n = static_cast<int>(problem_.contour.size());
+    if (n < 2)
+    {
+        return res;
+    }
+
     for (int angleIndex = 0; angleIndex < 2; angleIndex++)
     {
-        int angle = 0;
-        if (angleIndex == 0)
-        {
-            angle = 0;
-        }
-        else
-        {
-            angle = 90;
-        }
+        int angle = (angleIndex == 0) ? 0 : 90;
 
         double w = RotatedSpanX(item, angle);
         double h = RotatedSpanY(item, angle);
 
-        double min_x = room_bbox_.x1 + w / 2.0;
-        double max_x = room_bbox_.x2 - w / 2.0;
-        double min_y = room_bbox_.y1 + h / 2.0;
-        double max_y = room_bbox_.y2 - h / 2.0;
+        double sampleStep = ComputeAdaptiveStep(item, angle, true);
 
-        if (min_x > max_x || min_y > max_y)
+        for (int i = 0; i < n; i++)
         {
-            continue;
-        }
+            Segment edge;
+            edge.a = problem_.contour[i];
+            edge.b = problem_.contour[(i + 1) % n];
 
-        std::vector<double> x_positions = { min_x, (min_x + max_x) / 2.0, max_x };
-        std::vector<double> y_positions = { min_y, (min_y + max_y) / 2.0, max_y };
+            double nx = 0.0;
+            double ny = 0.0;
 
-        // 贴下墙、贴上墙
-        for (int i = 0; i < static_cast<int>(x_positions.size()); i++)
-        {
-            double x = x_positions[i];
-
-            Candidate cand;
-
-            // 贴下墙
-            cand.center.x = x;
-            cand.center.y = min_y;
-            cand.angle = angle;
-            cand.body = MakeRectFromCenter(cand.center, w, h);
-            cand.wall_hugging = true;
-            if (BasicCandidateValid(cand))
+            // 只处理水平/垂直边；并推断室内方向
+            if (!InferInteriorNormal(edge, &nx, &ny))
             {
-                AddCandidateUnique(res, cand);
+                continue;
             }
 
-            // 贴上墙
-            cand.center.x = x;
-            cand.center.y = max_y;
-            cand.angle = angle;
-            cand.body = MakeRectFromCenter(cand.center, w, h);
-            cand.wall_hugging = true;
-            if (BasicCandidateValid(cand))
+            // 水平边：中心 y 固定，x 沿边滑动
+            if (NearlyEqual(edge.a.y, edge.b.y))
             {
-                AddCandidateUnique(res, cand);
+                double y = edge.a.y + ny * (h / 2.0);
+
+                double x1 = std::min(edge.a.x, edge.b.x);
+                double x2 = std::max(edge.a.x, edge.b.x);
+
+                std::vector<double> xs;
+                AppendLineSamples(x1, x2, w / 2.0, sampleStep, xs);
+
+                for (int k = 0; k < static_cast<int>(xs.size()); k++)
+                {
+                    Candidate cand;
+                    cand.center.x = xs[k];
+                    cand.center.y = y;
+                    cand.angle = angle;
+                    cand.body = MakeRectFromCenter(cand.center, w, h);
+                    cand.wall_hugging = true;
+
+                    if (BasicCandidateValid(cand))
+                    {
+                        AddCandidateUnique(res, cand);
+                    }
+                }
             }
-        }
-
-        // 贴左墙、贴右墙
-        for (int i = 0; i < static_cast<int>(y_positions.size()); i++)
-        {
-            double y = y_positions[i];
-
-            Candidate cand;
-
-            // 贴左墙
-            cand.center.x = min_x;
-            cand.center.y = y;
-            cand.angle = angle;
-            cand.body = MakeRectFromCenter(cand.center, w, h);
-            cand.wall_hugging = true;
-            if (BasicCandidateValid(cand))
+            // 垂直边：中心 x 固定，y 沿边滑动
+            else if (NearlyEqual(edge.a.x, edge.b.x))
             {
-                AddCandidateUnique(res, cand);
-            }
+                double x = edge.a.x + nx * (w / 2.0);
 
-            // 贴右墙
-            cand.center.x = max_x;
-            cand.center.y = y;
-            cand.angle = angle;
-            cand.body = MakeRectFromCenter(cand.center, w, h);
-            cand.wall_hugging = true;
-            if (BasicCandidateValid(cand))
-            {
-                AddCandidateUnique(res, cand);
+                double y1 = std::min(edge.a.y, edge.b.y);
+                double y2 = std::max(edge.a.y, edge.b.y);
+
+                std::vector<double> ys;
+                AppendLineSamples(y1, y2, h / 2.0, sampleStep, ys);
+
+                for (int k = 0; k < static_cast<int>(ys.size()); k++)
+                {
+                    Candidate cand;
+                    cand.center.x = x;
+                    cand.center.y = ys[k];
+                    cand.angle = angle;
+                    cand.body = MakeRectFromCenter(cand.center, w, h);
+                    cand.wall_hugging = true;
+
+                    if (BasicCandidateValid(cand))
+                    {
+                        AddCandidateUnique(res, cand);
+                    }
+                }
             }
         }
     }
@@ -371,16 +492,19 @@ std::vector<Solver::Candidate> Solver::GenerateInteriorCandidates(int item_index
 {
     std::vector<Solver::Candidate> res;
     const Item& item = problem_.items[item_index];
-    if (step <= EPS)
-    {
-        step = default_grid_step_;
-    }
+
     for (int angleIndex = 0; angleIndex < 2; angleIndex++)
     {
         int angle = (angleIndex == 0) ? 0 : 90;
 
         double w = RotatedSpanX(item, angle);
         double h = RotatedSpanY(item, angle);
+
+        double useStep = step;
+        if (useStep <= EPS)
+        {
+            useStep = ComputeAdaptiveStep(item, angle, false);
+        }
 
         double min_x = room_bbox_.x1 + w / 2.0;
         double max_x = room_bbox_.x2 - w / 2.0;
@@ -391,9 +515,10 @@ std::vector<Solver::Candidate> Solver::GenerateInteriorCandidates(int item_index
         {
             continue;
         }
-        for (double x = min_x; x <= max_x + EPS; x += step)
+
+        for (double x = min_x; x <= max_x + EPS; x += useStep)
         {
-            for (double y = min_y; y <= max_y + EPS; y += step)
+            for (double y = min_y; y <= max_y + EPS; y += useStep)
             {
                 Candidate cand;
                 cand.center.x = x;
@@ -408,8 +533,49 @@ std::vector<Solver::Candidate> Solver::GenerateInteriorCandidates(int item_index
                 }
             }
         }
-    }
+        for (double x = min_x; x <= max_x + EPS; x += useStep)
+        {
+            Candidate cand;
+            cand.center.x = x;
+            cand.center.y = max_y;
+            cand.angle = angle;
+            cand.body = MakeRectFromCenter(cand.center, w, h);
+            cand.wall_hugging = false;
 
+            if (BasicCandidateValid(cand))
+            {
+                AddCandidateUnique(res, cand);
+            }
+        }
+
+        for (double y = min_y; y <= max_y + EPS; y += useStep)
+        {
+            Candidate cand;
+            cand.center.x = max_x;
+            cand.center.y = y;
+            cand.angle = angle;
+            cand.body = MakeRectFromCenter(cand.center, w, h);
+            cand.wall_hugging = false;
+
+            if (BasicCandidateValid(cand))
+            {
+                AddCandidateUnique(res, cand);
+            }
+        }
+        {
+            Candidate cand;
+            cand.center.x = max_x;
+            cand.center.y = max_y;
+            cand.angle = angle;
+            cand.body = MakeRectFromCenter(cand.center, w, h);
+            cand.wall_hugging = false;
+
+            if (BasicCandidateValid(cand))
+            {
+                AddCandidateUnique(res, cand);
+            }
+        }
+    }
     return res;
 }
 

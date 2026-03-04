@@ -7,6 +7,12 @@
 
 bool ParseProblemFromFile(const std::string& path, Problem& out, std::string& err);
 
+// 新增：JSON 解析
+bool ParseProblemFromJsonFile(const std::string& path, Problem& out, std::string& err);
+
+// 新增：根据 JSON 里的 key 推导类型
+ItemType ParseItemTypeFromName(const std::string& itemName);
+
 void PrintSolution(const Problem& problem, const Solution& solution, std::ostream& os);
 
 // 解析工具函数声明
