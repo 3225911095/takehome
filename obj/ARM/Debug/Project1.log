@@ -1,0 +1,63 @@
+﻿  正在清理远程项目目录
+  正在验证源
+  正在将源远程复制到“192.168.233.157”
+  正在验证体系结构
+  正在验证体系结构
+E:\vs2019\MSBuild\Microsoft\VC\v160\Application Type\Linux\1.0\Linux.targets(202,5): warning : 当前项目体系结构“ARM”不兼容远程系统体系结构“x64”(“x64”)。请在 Configuration Manager 中将项目体系结构切换为“x64”。如果正在交叉编译，可以忽略此警告。
+  正在启动远程生成
+  正在编译源:
+  geometry.cpp
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(13,27): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::array<Point, 4>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(13,27): warning :    13 |         for (int i = 0; i < arr.size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(13,27): warning :       |                         ~~^~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(31,33): warning : conversion from ‘std::vector<Point>::size_type’ {aka ‘long unsigned int’} to ‘int’ may change value [-Wconversion]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(31,33): warning :    31 |         int polySize = poly.size();
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(31,33): warning :       |                        ~~~~~~~~~^~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(115,27): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Point>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(115,27): warning :   115 |         for (int i = 0; i < pts.size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(115,27): warning :       |                         ~~^~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(262,26): warning : conversion from ‘std::vector<Point>::size_type’ {aka ‘long unsigned int’} to ‘int’ may change value [-Wconversion]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(262,26): warning :   262 |         int n = poly.size();
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\geometry.cpp(262,26): warning :       |                 ~~~~~~~~~^~
+  main.cpp
+  parser.cpp
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(44,23): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::__cxx11::basic_string<char> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(44,23): warning :    44 |     for (int i = 0; i < lines.size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(44,23): warning :       |                     ~~^~~~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(61,48): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::__cxx11::basic_string<char> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(61,48): warning :    61 |     for (int i = startIndex; i < endIndex && i < lines.size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(61,48): warning :       |                                              ~~^~~~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(149,15): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::__cxx11::basic_string<char> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(149,15): warning :   149 |     if (index >= lines.size())
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\parser.cpp(149,15): warning :       |         ~~~~~~^~~~~~~~~~~~~~~
+  solver.cpp
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(241,23): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Placement>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(241,23): warning :   241 |     for (int i = 0; i < placed.size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(241,23): warning :       |                     ~~^~~~~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(264,23): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Solver::Candidate>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(264,23): warning :   264 |     for (int i = 0; i < out.size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(264,23): warning :       |                     ~~^~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(419,23): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Item>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(419,23): warning :   419 |     for (int i = 0; i < problem_.items.size(); ++i)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(419,23): warning :       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(455,15): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<int>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(455,15): warning :   455 |     if (depth == order.size())
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(455,15): warning :       |         ~~~~~~^~~~~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(462,23): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Solver::Candidate>::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(462,23): warning :   462 |     for (int i = 0; i < all_candidates[item_index].size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(462,23): warning :       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(482,23): warning : comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::vector<Solver::Candidate> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(482,23): warning :   482 |     for (int i = 0; i < all_candidates.size(); i++)
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(482,23): warning :       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(159,1): warning : control reaches end of non-void function [-Wreturn-type]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(159,1): warning :   159 | }
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(159,1): warning :       | ^
+  utils.cpp
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\utils.cpp(12,26): warning : conversion from ‘std::__cxx11::basic_string<char>::size_type’ {aka ‘long unsigned int’} to ‘int’ may change value [-Wconversion]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\utils.cpp(12,26): warning :    12 |     int right = s.size() - 1;
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\utils.cpp(12,26): warning :       |                 ~~~~~~~~~^~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\utils.cpp(48,20): warning : conversion from ‘int’ to ‘char’ may change value [-Wconversion]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\utils.cpp(48,20): warning :    48 |         c = toupper(c);
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\utils.cpp(48,20): warning :       |             ~~~~~~~^~~
+  正在链接对象
+  Project1.vcxproj -> F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\bin\ARM\Debug\Project1.out

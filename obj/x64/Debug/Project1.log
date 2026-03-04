@@ -1,0 +1,32 @@
+﻿  正在清理远程项目目录
+  正在验证源
+  正在将源远程复制到“192.168.233.157”
+  正在验证体系结构
+  正在验证体系结构
+  正在启动远程生成
+  正在编译源:
+  geometry.cpp
+  main.cpp
+  parser.cpp
+  solver.cpp
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(3,1): error : uninitialized reference member in ‘const struct Problem&’ [-fpermissive]
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(54,20): message : ‘const Problem& Solver::problem_’ should be initialized
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(54,20): message :    54 |     const Problem& problem_;
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(54,20): message :       |                    ^~~~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(51,13): error : ‘Candidate’ was not declared in this scope
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(51,22): error : template argument 1 is invalid
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(51,22): error : template argument 2 is invalid
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(51,24): error : no declaration matches ‘int Solver::GenerateWallCandidates(int) const’
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(33,28): message : candidate is: ‘std::vector<Solver::Candidate> Solver::GenerateWallCandidates(int) const’
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(6,7): message : ‘class Solver’ defined here
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(6,7): message :     6 | class Solver {
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(6,7): message :       |       ^~~~~~
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(56,13): error : ‘Candidate’ was not declared in this scope
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(56,22): error : template argument 1 is invalid
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(56,22): error : template argument 2 is invalid
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.cpp(56,24): error : no declaration matches ‘int Solver::GenerateInteriorCandidates(int, double) const’
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(34,28): message : candidate is: ‘std::vector<Solver::Candidate> Solver::GenerateInteriorCandidates(int, double) const’
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(6,7): message : ‘class Solver’ defined here
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(6,7): message :     6 | class Solver {
+F:\题目\居灵-TakeHome工程题\居灵-TakeHome工程题\code\Project1\solver.h(6,7): message :       |       ^~~~~~
+  utils.cpp

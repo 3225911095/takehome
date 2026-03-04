@@ -1,0 +1,1 @@
+g++ -o "/root/projects/Project1/bin/ARM/Debug/Project1.out" -Wl,--no-undefined -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack /root/projects/Project1/obj/ARM/Debug/geometry.o /root/projects/Project1/obj/ARM/Debug/main.o /root/projects/Project1/obj/ARM/Debug/parser.o /root/projects/Project1/obj/ARM/Debug/solver.o /root/projects/Project1/obj/ARM/Debug/utils.o
